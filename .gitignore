@@ -14,6 +14,10 @@ backend/bootstrap/cache/
 mysql_data/
 redis_data/
 
+# Build artifacts
+frontend/dist/
+backend/.phpunit.result.cache
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -34,3 +34,4 @@ RUN mkdir -p /var/www/storage/logs /var/www/storage/framework/cache /var/www/sto
 WORKDIR /var/www
 
 ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]

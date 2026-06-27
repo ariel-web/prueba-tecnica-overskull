@@ -24,5 +24,10 @@ if ! grep -q "^APP_KEY=base64:" .env; then
     php artisan key:generate --force
 fi
 
-# Start PHP-FPM
-exec php-fpm
+# Run migrations (skip in worker to avoid race conditions)
+if [ "${SKIP_MIGRATIONS}" != "true" ]; then
+    php artisan migrate --seed --force
+fi
+
+# Execute the passed command (php-fpm for backend, queue:work for worker)
+exec "$@"

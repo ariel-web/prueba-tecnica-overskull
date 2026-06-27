@@ -2,145 +2,199 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Product\StoreProductRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Product\StockMovementRequest;
+use App\Http\Resources\ProductResource;
+use App\Http\Resources\StockMovementResource;
 use App\Models\Product;
-use App\Models\StockMovement;
+use App\Services\ProductService;
+use App\Services\StockMovementService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private readonly ProductService $productService,
+        private readonly StockMovementService $stockMovementService
+    ) {}
+
+    #[OA\Get(
+        path: '/products',
+        summary: 'Listar productos con filtros y paginación',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'q', in: 'query', description: 'Buscar por nombre', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'category_id', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'min_price', in: 'query', required: false, schema: new OA\Schema(type: 'number')),
+            new OA\Parameter(name: 'max_price', in: 'query', required: false, schema: new OA\Schema(type: 'number')),
+            new OA\Parameter(name: 'min_stock', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'max_stock', in: 'query', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'sort', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['price', 'stock', 'created_at'])),
+            new OA\Parameter(name: 'order', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['asc', 'desc'])),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Lista paginada', content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Product')),
+                    new OA\Property(property: 'meta', ref: '#/components/schemas/Pagination'),
+                ]
+            )),
+            new OA\Response(response: 401, description: 'No autenticado'),
+        ]
+    )]
+    public function index(Request $request): JsonResponse
     {
-        // Legacy issue: no pagination, raw SQL, string concatenation and N+1 category loading.
-        $sql = "SELECT * FROM products WHERE 1=1";
+        $products = $this->productService->list($request->only([
+            'q', 'category_id', 'status', 'min_price', 'max_price',
+            'min_stock', 'max_stock', 'sort', 'order', 'per_page',
+        ]));
 
-        if ($request->get('q')) {
-            $sql .= " AND name LIKE '%" . $request->get('q') . "%'";
-        }
-
-        if ($request->get('category_id')) {
-            $sql .= " AND category_id = " . $request->get('category_id');
-        }
-
-        if ($request->get('status') !== null) {
-            $sql .= " AND status = " . $request->get('status');
-        }
-
-        $sql .= " ORDER BY created_at DESC";
-
-        $products = DB::select($sql);
-
-        foreach ($products as $product) {
-            $product->category = DB::table('categories')->where('id', $product->category_id)->first();
-            $product->total_movements = DB::table('stock_movements')->where('product_id', $product->id)->count();
-        }
-
-        return response()->json($products);
+        return ProductResource::collection($products)
+            ->response()
+            ->setStatusCode(200);
     }
 
-    public function store(Request $request)
+    #[OA\Post(
+        path: '/products',
+        summary: 'Crear producto',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/ProductStoreRequest')
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Producto creado', content: new OA\JsonContent(ref: '#/components/schemas/Product')),
+            new OA\Response(response: 422, description: 'Error de validación'),
+        ]
+    )]
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        // Legacy issue: validation is incomplete and mixed with persistence logic.
-        if (!$request->name) {
-            return response()->json(['message' => 'Name is required'], 422);
-        }
+        $product = $this->productService->create($request->validated());
 
-        $product = new Product();
-        $product->name = $request->name;
-        $product->description = $request->description;
-        $product->price = $request->price;
-        $product->stock = $request->stock;
-        $product->category_id = $request->category_id;
-        $product->status = $request->status ?? 1;
-        $product->save();
-
-        Log::info('Product created', ['product_id' => $product->id, 'payload' => $request->all()]);
-
-        return response()->json(['ok' => true, 'product' => $product], 201);
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function show($id)
+    #[OA\Get(
+        path: '/products/{product}',
+        summary: 'Ver producto',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        parameters: [new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'Producto', content: new OA\JsonContent(ref: '#/components/schemas/Product')),
+            new OA\Response(response: 404, description: 'No encontrado'),
+        ]
+    )]
+    public function show(Product $product): JsonResponse
     {
-        $product = Product::find($id);
-
-        if (!$product) {
-            return response()->json(['error' => 'Product not found'], 404);
-        }
-
-        $product->category_name = DB::table('categories')->where('id', $product->category_id)->value('name');
-        return response()->json(['data' => $product]);
+        return (new ProductResource($product->load('category')))
+            ->response()
+            ->setStatusCode(200);
     }
 
-    public function update(Request $request, $id)
+    #[OA\Put(
+        path: '/products/{product}',
+        summary: 'Actualizar producto',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        parameters: [new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: '#/components/schemas/ProductUpdateRequest')),
+        responses: [
+            new OA\Response(response: 200, description: 'Producto actualizado', content: new OA\JsonContent(ref: '#/components/schemas/Product')),
+            new OA\Response(response: 422, description: 'Error de validación'),
+        ]
+    )]
+    public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        $product = Product::find($id);
+        $product = $this->productService->update($product, $request->validated());
 
-        if (!$product) {
-            return response()->json(['msg' => 'No existe'], 404);
-        }
-
-        // Legacy issue: mass assignment without specific validation or normalization.
-        $product->fill($request->all());
-        $product->save();
-
-        Log::info('Product updated', ['product_id' => $product->id, 'payload' => $request->all()]);
-
-        return response()->json(['success' => true, 'data' => $product]);
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(200);
     }
 
-    public function destroy($id)
+    #[OA\Delete(
+        path: '/products/{product}',
+        summary: 'Eliminar producto',
+        tags: ['Products'],
+        security: [['sanctum' => []]],
+        parameters: [new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 204, description: 'Eliminado'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+        ]
+    )]
+    public function destroy(Request $request, Product $product): JsonResponse
     {
-        $product = Product::find($id);
+        $this->productService->delete($product);
 
-        if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Product not found'], 404);
-        }
-
-        $product->delete();
-        Log::info('Product deleted', ['product_id' => $id]);
-
-        return response()->json(['deleted' => true]);
+        return response()->json(null, 204);
     }
 
-    public function stockMovements($id)
+    #[OA\Get(
+        path: '/products/{product}/stock-movements',
+        summary: 'Listar movimientos de stock de un producto',
+        tags: ['Stock'],
+        security: [['sanctum' => []]],
+        parameters: [new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'Lista paginada', content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/StockMovement')),
+                    new OA\Property(property: 'meta', ref: '#/components/schemas/Pagination'),
+                ]
+            )),
+        ]
+    )]
+    public function stockMovements(Product $product): JsonResponse
     {
-        // Legacy issue: no pagination and no product validation.
-        $movements = StockMovement::where('product_id', $id)->orderBy('id', 'desc')->get();
-        return response()->json($movements);
+        $movements = $this->stockMovementService->listByProduct($product->id);
+
+        return StockMovementResource::collection($movements)
+            ->response()
+            ->setStatusCode(200);
     }
 
-    public function storeStockMovement(Request $request, $id)
+    #[OA\Post(
+        path: '/products/{product}/stock-movements',
+        summary: 'Registrar movimiento de stock',
+        tags: ['Stock'],
+        security: [['sanctum' => []]],
+        parameters: [new OA\Parameter(name: 'product', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'type', type: 'string', enum: ['entrada', 'salida'], example: 'entrada'),
+                    new OA\Property(property: 'quantity', type: 'integer', minimum: 1, example: 10),
+                    new OA\Property(property: 'reason', type: 'string', example: 'Restock', nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Movimiento creado', content: new OA\JsonContent(ref: '#/components/schemas/StockMovement')),
+            new OA\Response(response: 422, description: 'Stock insuficiente o error de validación'),
+        ]
+    )]
+    public function storeStockMovement(StockMovementRequest $request, Product $product): JsonResponse
     {
-        // Legacy issue: no transaction, weak validation and race-condition risk.
-        $product = Product::find($id);
+        $movement = $this->stockMovementService->create(
+            $product->id,
+            $request->validated(),
+            $request->user()->id
+        );
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-
-        if ($request->type == 'salida') {
-            $product->stock = $product->stock - $request->quantity;
-        } else {
-            $product->stock = $product->stock + $request->quantity;
-        }
-
-        $product->save();
-
-        $movement = StockMovement::create([
-            'product_id' => $product->id,
-            'type' => $request->type,
-            'quantity' => $request->quantity,
-            'reason' => $request->reason,
-            'user_id' => $request->auth_user_id,
-        ]);
-
-        Log::info('Stock movement registered', ['movement_id' => $movement->id]);
-
-        return response()->json([
-            'message' => 'Stock updated',
-            'product' => $product,
-            'movement' => $movement,
-        ]);
+        return (new StockMovementResource($movement))
+            ->response()
+            ->setStatusCode(201);
     }
 }
