@@ -1,0 +1,57 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f4f4;
+}
+
+.nav {
+  background: #222;
+  color: #fff;
+  padding: 12px;
+}
+
+.nav a {
+  color: #fff;
+  margin-right: 12px;
+  text-decoration: none;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+}
+
+input, select, textarea {
+  padding: 8px;
+  margin: 4px;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 4px;
+}
+
+.error {
+  color: red;
+}
+
+.success {
+  color: green;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+td, th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
