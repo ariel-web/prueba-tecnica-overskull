@@ -11,6 +11,7 @@ mkdir -p storage/framework/cache/data \
          storage/framework/sessions \
          storage/framework/views \
          storage/logs \
+         storage/api-docs \
          bootstrap/cache
 
 # Permissions: chown is required because the volume mount overrides Dockerfile ownership

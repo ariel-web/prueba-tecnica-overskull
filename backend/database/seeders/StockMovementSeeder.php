@@ -28,7 +28,7 @@ class StockMovementSeeder extends Seeder
         'Salida por garantía',
     ];
 
-    private const TARGET_COUNT = 15000;
+    private const TARGET_COUNT = 1000;
     private const CHUNK_SIZE = 250;
 
     public function run(): void

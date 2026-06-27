@@ -25,7 +25,7 @@ class ProductSeeder extends Seeder
         'Tefal', 'Tramontina', 'Victorinox', 'Nike', 'Adidas', 'Stanley',
     ];
 
-    private const TARGET_COUNT = 10000;
+    private const TARGET_COUNT = 1000;
     private const CHUNK_SIZE = 200;
 
     public function run(): void

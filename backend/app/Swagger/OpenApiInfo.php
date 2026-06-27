@@ -5,7 +5,7 @@ namespace App\Swagger;
 use OpenApi\Attributes as OA;
 
 #[OA\OpenApi(
-    security: [new OA\SecurityScheme(securityScheme: 'sanctum')]
+    security: [['sanctum' => []]]
 )]
 #[OA\Info(
     title: 'Sistema de Gestión de Productos API',
@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\SecurityScheme(
     securityScheme: 'sanctum',
-    type: OA\SecurityScheme::HTTP,
+    type: 'http',
     scheme: 'bearer',
     bearerFormat: 'JWT',
     description: 'Bearer token de Sanctum',
