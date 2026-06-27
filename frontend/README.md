@@ -1,16 +1,13 @@
-# Frontend Legacy Vue 2
+# Frontend — Vue 2 + Vite
 
-Este proyecto representa un frontend legacy con problemas intencionales.
+Interfaz de gestión de productos, categorías y movimientos de stock.
 
-## Stack actual
+## Stack
 
 - Vue 2
 - Vue Router 3
-- Axios directo en componentes
-- Sin Pinia
-- Sin Composition API
-- Sin Tailwind
-- Manejo débil de errores
+- Axios
+- Vite
 
 ## Instalación
 
@@ -23,9 +20,5 @@ npm run dev
 ## Variables
 
 ```txt
-VITE_API_URL=http://127.0.0.1:8000/api
+VITE_API_URL=http://localhost:8080/api
 ```
-
-## Nota
-
-El objetivo del candidato es migrar a Vue 3, Composition API, Pinia, Tailwind, servicios centralizados e interceptores globales.

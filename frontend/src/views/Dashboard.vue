@@ -34,7 +34,7 @@ export default {
   },
   mounted() {
     this.loading = true
-    axios.get((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/dashboard', {
+    axios.get((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/dashboard', {
       headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
     }).then(res => {
       this.data = res.data

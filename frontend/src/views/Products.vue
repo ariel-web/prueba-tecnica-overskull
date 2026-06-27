@@ -66,7 +66,7 @@ export default {
   },
   methods: {
     loadCategories() {
-      axios.get((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/categories', {
+      axios.get((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/categories', {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(res => {
         this.categories = res.data.categories
@@ -75,7 +75,7 @@ export default {
     loadProducts() {
       this.loading = true
       this.error = ''
-      axios.get((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/products?q=' + this.q + '&category_id=' + this.category_id, {
+      axios.get((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/products?q=' + this.q + '&category_id=' + this.category_id, {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(res => {
         // Legacy issue: assumes backend returns array directly.
@@ -88,7 +88,7 @@ export default {
     },
     remove(id) {
       if (!confirm('¿Eliminar producto?')) return
-      axios.delete((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/products/' + id, {
+      axios.delete((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/products/' + id, {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(() => {
         this.success = 'Producto eliminado'

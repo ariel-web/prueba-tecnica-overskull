@@ -24,7 +24,7 @@ export default {
   methods: {
     login() {
       // Legacy issue: no loading state and no strong frontend validation.
-      axios.post((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/login', {
+      axios.post((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/login', {
         email: this.email,
         password: this.password
       }).then(res => {

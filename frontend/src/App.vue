@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="nav">
+    <div class="nav" v-if="$route.name !== 'login'">
       <router-link to="/dashboard">Dashboard</router-link>
       <router-link to="/products">Productos</router-link>
       <router-link to="/categories">Categorías</router-link>

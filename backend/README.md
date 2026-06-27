@@ -1,18 +1,15 @@
-# Backend Legacy Laravel 8
+# Backend — Laravel 11 + PHP 8.2
 
-Este proyecto representa una API legacy con problemas intencionales. El objetivo del candidato es migrarlo, optimizarlo y refactorizarlo.
+API REST para gestión de productos, categorías y movimientos de stock.
 
-## Stack actual legacy
+## Stack
 
-- Laravel 8
-- PHP 7.4 / 8.0
-- MySQL
-- Sin Swagger
-- Sin Telescope
-- Sin auditoría formal
-- Sin pruebas reales
+- Laravel 11
+- PHP 8.2
+- MySQL 8.0
+- Redis (cache, queue, session)
 
-## Instalación inicial
+## Instalación
 
 ```bash
 cp .env.example .env
@@ -25,35 +22,34 @@ php artisan serve
 ## URL base
 
 ```txt
-http://127.0.0.1:8000/api
+http://localhost:8080/api
 ```
 
-## Credenciales de prueba
+## Credenciales
 
 ```txt
 email: admin@legacy.test
 password: password
 ```
 
-## Endpoints legacy
+## Endpoints
 
 ```txt
-POST /api/login
-GET  /api/products
-POST /api/products
-GET  /api/products/{id}
-PUT  /api/products/{id}
-DELETE /api/products/{id}
-GET  /api/categories
-POST /api/categories
-PUT  /api/categories/{id}
+POST   /api/login
+POST   /api/logout
+GET    /api/me
+GET    /api/health
+GET    /api/dashboard
+GET    /api/categories
+POST   /api/categories
+GET    /api/categories/{id}
+PUT    /api/categories/{id}
 DELETE /api/categories/{id}
-GET  /api/products/{id}/stock-movements
-POST /api/products/{id}/stock-movements
-GET  /api/dashboard
-GET  /api/health
+GET    /api/products
+POST   /api/products
+GET    /api/products/{id}
+PUT    /api/products/{id}
+DELETE /api/products/{id}
+GET    /api/products/{id}/stock-movements
+POST   /api/products/{id}/stock-movements
 ```
-
-## Nota
-
-Este proyecto tiene errores intencionales de arquitectura, rendimiento, seguridad, manejo de errores y mantenibilidad. No se debe tomar como ejemplo de buenas prácticas.

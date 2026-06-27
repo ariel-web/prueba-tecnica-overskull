@@ -1,11 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Login from './views/Login.vue'
-import Dashboard from './views/Dashboard.vue'
-import Products from './views/Products.vue'
-import ProductForm from './views/ProductForm.vue'
-import Categories from './views/Categories.vue'
-import StockMovements from './views/StockMovements.vue'
 
 Vue.use(Router)
 
@@ -13,20 +7,20 @@ const router = new Router({
   mode: 'history',
   routes: [
     { path: '/', redirect: '/dashboard' },
-    { path: '/login', component: Login },
-    { path: '/dashboard', component: Dashboard },
-    { path: '/products', component: Products },
-    { path: '/products/new', component: ProductForm },
-    { path: '/products/:id/edit', component: ProductForm },
-    { path: '/products/:id/stock', component: StockMovements },
-    { path: '/categories', component: Categories },
+    { path: '/login', name: 'login', component: () => import('./views/Login.vue'), meta: { public: true } },
+    { path: '/dashboard', name: 'dashboard', component: () => import('./views/Dashboard.vue') },
+    { path: '/products', name: 'products', component: () => import('./views/Products.vue') },
+    { path: '/products/new', name: 'product-create', component: () => import('./views/ProductForm.vue') },
+    { path: '/products/:id/edit', name: 'product-edit', component: () => import('./views/ProductForm.vue') },
+    { path: '/products/:id/stock', name: 'product-stock', component: () => import('./views/StockMovements.vue') },
+    { path: '/categories', name: 'categories', component: () => import('./views/Categories.vue') },
+    { path: '*', redirect: '/dashboard' },
   ]
 })
 
 router.beforeEach((to, from, next) => {
-  // Legacy issue: simplistic route guard.
-  if (to.path !== '/login' && !localStorage.getItem('token')) {
-    next('/login')
+  if (!to.meta.public && !localStorage.getItem('token')) {
+    next({ name: 'login' })
   } else {
     next()
   }

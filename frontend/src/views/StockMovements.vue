@@ -54,13 +54,13 @@ export default {
   },
   methods: {
     load() {
-      axios.get((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/products/' + this.$route.params.id + '/stock-movements', {
+      axios.get((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/products/' + this.$route.params.id + '/stock-movements', {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(res => this.movements = res.data)
     },
     save() {
       // Legacy issue: frontend does not validate stock or numeric quantity properly.
-      axios.post((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/products/' + this.$route.params.id + '/stock-movements', this.form, {
+      axios.post((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/products/' + this.$route.params.id + '/stock-movements', this.form, {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(() => {
         this.success = 'Movimiento registrado'

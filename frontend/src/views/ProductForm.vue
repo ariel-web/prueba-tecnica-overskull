@@ -54,12 +54,12 @@ export default {
   },
   methods: {
     loadCategories() {
-      axios.get((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/categories', {
+      axios.get((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/categories', {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(res => this.categories = res.data.categories)
     },
     loadProduct() {
-      axios.get((import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/products/' + this.$route.params.id, {
+      axios.get((import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/products/' + this.$route.params.id, {
         headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
       }).then(res => {
         this.form = res.data.data
@@ -73,7 +73,7 @@ export default {
       }
 
       this.loading = true
-      const url = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api') + '/products' + (this.isEdit ? '/' + this.$route.params.id : '')
+      const url = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api') + '/products' + (this.isEdit ? '/' + this.$route.params.id : '')
       const method = this.isEdit ? 'put' : 'post'
 
       axios({

@@ -6,13 +6,13 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
-        // Nothing here.
+        //
     }
 
-    public function boot()
+    public function boot(): void
     {
-        // Legacy project does not configure model strict mode.
+        //
     }
 }
