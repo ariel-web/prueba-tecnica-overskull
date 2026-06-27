@@ -13,7 +13,8 @@ mkdir -p storage/framework/cache/data \
          storage/logs \
          bootstrap/cache
 
-# Permissions
+# Permissions: chown is required because the volume mount overrides Dockerfile ownership
+chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
 # Install dependencies
@@ -26,7 +27,10 @@ fi
 
 # Run migrations (skip in worker to avoid race conditions)
 if [ "${SKIP_MIGRATIONS}" != "true" ]; then
-    php artisan migrate --seed --force
+    php artisan migrate --force
+    if [ "${SKIP_SEED}" != "true" ]; then
+        php artisan db:seed --force
+    fi
 fi
 
 # Execute the passed command (php-fpm for backend, queue:work for worker)

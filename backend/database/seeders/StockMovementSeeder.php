@@ -28,16 +28,19 @@ class StockMovementSeeder extends Seeder
         'Salida por garantía',
     ];
 
-    private const TARGET_COUNT = 30000;
-    private const CHUNK_SIZE = 1000;
+    private const TARGET_COUNT = 15000;
+    private const CHUNK_SIZE = 250;
 
     public function run(): void
     {
+        DB::table('stock_movements')->truncate();
         $maxProductId = (int) DB::table('products')->max('id');
         $movements = [];
         $now = now();
+        $targetCount = (int) env('SEED_STOCK_MOVEMENT_COUNT', self::TARGET_COUNT);
+        $chunkSize = (int) env('SEED_STOCK_MOVEMENT_CHUNK_SIZE', self::CHUNK_SIZE);
 
-        for ($i = 1; $i <= self::TARGET_COUNT; $i++) {
+        for ($i = 1; $i <= $targetCount; $i++) {
             $type = rand(0, 1) ? 'entrada' : 'salida';
             $reasons = $type === 'entrada' ? self::ENTRY_REASONS : self::EXIT_REASONS;
 
@@ -51,7 +54,7 @@ class StockMovementSeeder extends Seeder
                 'updated_at' => $now,
             ];
 
-            if (count($movements) === self::CHUNK_SIZE) {
+            if (count($movements) === $chunkSize) {
                 DB::table('stock_movements')->insert($movements);
                 $movements = [];
             }

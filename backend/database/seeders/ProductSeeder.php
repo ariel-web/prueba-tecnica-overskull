@@ -26,17 +26,21 @@ class ProductSeeder extends Seeder
     ];
 
     private const TARGET_COUNT = 10000;
-    private const CHUNK_SIZE = 500;
+    private const CHUNK_SIZE = 200;
 
     public function run(): void
     {
+        DB::table('products')->truncate();
+
         $faker = \Faker\Factory::create();
         $maxCategoryId = (int) DB::table('categories')->max('id');
         $now = now();
+        $targetCount = (int) env('SEED_PRODUCT_COUNT', self::TARGET_COUNT);
+        $chunkSize = (int) env('SEED_PRODUCT_CHUNK_SIZE', self::CHUNK_SIZE);
 
-        for ($offset = 0; $offset < self::TARGET_COUNT; $offset += self::CHUNK_SIZE) {
+        for ($offset = 0; $offset < $targetCount; $offset += $chunkSize) {
             $batch = [];
-            $batchSize = min(self::CHUNK_SIZE, self::TARGET_COUNT - $offset);
+            $batchSize = min($chunkSize, $targetCount - $offset);
 
             for ($i = 0; $i < $batchSize; $i++) {
                 $batch[] = [
